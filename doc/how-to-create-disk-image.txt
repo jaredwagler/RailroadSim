@@ -1,0 +1,21 @@
+Create disk image from extracted files:
+sudo dd status=progress bs=1M count=1600 if=/dev/sdd of=rpi-esu-bridge-ro-<date>.img
+
+
+Modify disk image directly:
+sudo losetup --partscan --find --show rpi-esu-bridge-ro-<date>.img
+
+(This will add a /dev/loop0 for the disk, and /dev/loop0p1 and /dev/loop0p2 for the partitions)
+
+sudo mount /dev/loop0p1 /mnt
+
+(mess with stuff here)
+
+sudo umount /dev/loop0p1
+
+sudo losetup -D (removes all loopback devices)
+
+... or ...
+
+sudo losetup -d /dev/loop0 (removes only the loopback you just created)
+

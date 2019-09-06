@@ -1,0 +1,35 @@
+# Don't mess with these lines
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=US
+
+# Placing a '#' before a line comments it out
+
+# This is the default ESU CabControl wireless configuration
+# For ESU systems, uncomment this and comment out all other network
+# configurations
+
+network={
+	ssid="ESUWIFI"
+	psk="123456789"
+}
+
+# This is an example for a Digitrax LNWI.  Uncomment this and comment
+# out all other networks to connect to an LNWI.  You will also need to 
+# change the ssid line to match the SSID being transmitted by your LNWI
+
+#network={
+#	ssid="Dtx1-LnServer_0ACC-7"
+#	key_mgmt=NONE
+#}
+
+# This is an example for a home network with a password.  To connect to
+# your home wireless (such as to use JMRI), use this network block
+# In order to connect, you will need to change the network name and password
+# to match your home wireless configuration
+
+#network={
+#	ssid="MY-HOME-NETWORK-NAME"
+#	psk="MY-HOME-NETWORK-PASSWORD"
+#}
+

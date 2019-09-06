@@ -1,0 +1,32 @@
+[configuration]
+# mode sets which DCC IP server type we're going to connect to
+# Options:
+#  esu         = ESU CabControl System
+#  withrottle  = JMRI Wifi Throttle (Engine Driver) server
+#  lnwi        = Digitrax LNWI interface
+#  Defaults to "esu" if not specified
+#
+# Uncomment (remove the #) from only one of the following mode lines
+#  and make sure all others start with # (commented out)
+
+mode = esu
+#mode = withrottle
+#mode = lnwi
+
+# baseAddress is a number between 0-31 that sets the base address 
+baseAddress = 0
+
+# searchDelay is the time, in seconds, to scan each IP for the appropriate server
+searchDelay = 0.03
+
+# packetTimeout is the number of milliseconds 
+packetTimeout = 4000
+
+# serverIP specifies which IP the bridge will connect to
+#  Leave commented out for automatic search and find
+#serverIP = 192.168.7.191
+
+# serverPort specifies which port the server is listening on
+#  Leave commented out for the default 15471 on ESU or 12090 on WiThrottle
+#serverPort = 12090
+
