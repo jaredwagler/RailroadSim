@@ -64,8 +64,8 @@ class MRBusThrottle:
       else:
          self.locAddrLong = True
 
-      speed = pkt.data[2] & 0x7F  #I have no clue what this is checking but it might be seeing if speeed goes above 128?
-      if 1 == speed:
+      speed = pkt.data[2] & 0x7F  #The speed value goes from 0-127 and if it goes above this it loops around so 128 would be 0.
+      if 1 == speed: #Also negative values go backwards so -1 is 127
          speed = 0
          estop = 1
       elif speed > 1:
@@ -74,7 +74,7 @@ class MRBusThrottle:
       elif speed == 0:
          estop = 0
 
-      if pkt.data[2] & 0x80: #I think this might be some sort of positive negative checker.
+      if pkt.data[2] & 0x80: #If number is positive direction = 0; if number is negative direction = 1
          direction = 0
       else:
          direction = 1
@@ -100,12 +100,12 @@ class MRBusThrottle:
 
       # On the first pass, get the function statuses from the command station
       # The LNWI / WiThrottle support this, others may in the future
-      if self.locFunctions is None:
-         try:
+      if self.locFunctions is None: #Checks if there is an array of functions.
+         try: #Tries to acquire the functions from the command station
             self.locFunctions = cmdStn.locomotiveFunctionsGet(self.locObjID)
             print "MRBusThrottle (0x%02X): Got loco [%d] functions from cmd station" % (self.throttleAddr, self.locAddr)
             print self.locFunctions
-         except Exception as e:
+         except Exception as e: #If it can't get the functions it sets all of them to 0
             print "MRBusThrottle (0x%02X): Exception in locomotiveFunctionsGet() for loco [%d]" % (self.throttleAddr, self.locAddr)
             self.locFunctions = [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ]
 
@@ -114,23 +114,23 @@ class MRBusThrottle:
                        0,0,0,0,0,0,0,0,0 ]
 
       for i in range(29):
-         if i >= 0 and i < 8:
-            if pkt.data[6] & (1<<i):
+         if i >= 0 and i < 8: # 0-7
+            if pkt.data[6] & (1<<i): #& is a bitwise operator that compares two binary values and returns the similiarities. For example 9 & 1 would be 1 but 8 & 1 would be 0.
                functions[i] = 1
-         elif i >= 8 and i < 16:
-            if pkt.data[5] & (1<<(i-8)):
+         elif i >= 8 and i < 16: #8-15
+            if pkt.data[5] & (1<<(i-8)): # 1<<i is a bitwise operator that shifts a bit to the left i.e. 0100 would become 1000.
                functions[i] = 1
-         elif i >= 16 and i < 24:
-            if pkt.data[4] & (1<<(i-16)):
+         elif i >= 16 and i < 24: #16-23
+            if pkt.data[4] & (1<<(i-16)): #Need to find out what the range of data is coming through and make a table of possible values.
                functions[i] = 1
-         elif i >= 24 and i < 29:
+         elif i >= 24 and i < 29: #23-28
             if pkt.data[3] & (1<<(i-24)):
                functions[i] = 1
 
       for i in range(29):
-         if functions[i] != self.locFunctions[i]:
+         if functions[i] != self.locFunctions[i]: #updates the functions if they changed.
             print "MRBusThrottle (0x%02X): Set loco [%d] function [%d] to [%d]" % (self.throttleAddr, self.locAddr, i, functions[i])
-            cmdStn.locomotiveFunctionSet(self.locObjID, i, functions[i])
+            cmdStn.locomotiveFunctionSet(self.locObjID, i, functions[i]) #Goes to esu.py line 155
 
       self.locFunctions = functions
 
