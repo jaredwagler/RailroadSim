@@ -7,7 +7,7 @@
 #
 # LICENSE:
 #   Copyright (C) 2018 Michael Petersen & Nathan Holmes
-#    
+#
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation; either version 3 of the License, or
@@ -24,11 +24,11 @@
 #   (or compatible, such as the Digitrax LNWI).
 #
 #   While this is intended to be used on a Raspberry Pi as an embedded system,
-#   it will work just fine on a desktop.  The biggest thing it needs is the 
+#   it will work just fine on a desktop.  The biggest thing it needs is the
 #   "protothrottle.ini" file, of which the default configuration (with usage comments)
-#   is included in the Github repository.  
+#   is included in the Github repository.
 #
-#   See test-start-esubridge.sh in the repo to see an example of how to invoke 
+#   See test-start-esubridge.sh in the repo to see an example of how to invoke
 #   this sanely.
 #
 #*************************************************************************
@@ -89,7 +89,7 @@ def getInterfaceTypeByteArray(bridgeTypeStr):
       if i >= 32 and i<127:
          interfaceTypeBytes[bytesUsed] = i
          bytesUsed += 1
-         
+
       if bytesUsed >= interfaceTypeBytesMaxLen:
          break
 
@@ -99,12 +99,12 @@ def serverFind(timeout, port, mrbee):
    """Given a port, this searches the local class C subnet for anything with that port open."""
    defaultIP = netUtils.get_ip()
    o1,o2,o3,o4 = defaultIP.split('.')
-   
+
    startScan = getMillis()
    ledStatus = False
-   
+
    mrbee.setXbeeLED('D8', ledStatus);
-   
+
    print "PT-BRIDGE: Starting Scan on subnet (%s.%s.%s.255)" % (o1, o2, o3)
    for i in range(0,254):
       scanIP = "%s.%s.%s.%d" % (o1, o2, o3, i)
@@ -112,10 +112,10 @@ def serverFind(timeout, port, mrbee):
       if getMillis() > (startScan + 100):
           ledStatus = not ledStatus
           mrbee.setXbeeLED('D8', ledStatus);
-      
+
       if result:
          print "PT-BRIDGE: IP %s has port %d open - waiting a second for the ports to close" % (scanIP, port)
-         
+
          # Wait a second - the LNWI responds poorly to quick subsequent connections
          for i in range(0, 4):
             ledStatus = not ledStatus
@@ -124,7 +124,7 @@ def serverFind(timeout, port, mrbee):
 
          mrbee.setXbeeLED('D8', False);
          return scanIP
-   
+
    mrbee.setXbeeLED('D8', False);
    return None
 
@@ -135,13 +135,13 @@ while 1:
    print "-----------------------------------------------"
    print " STARTING CONFIG PHASE"
    print ""
-   
+
    if args.config is not None:
       try:
          print "Reading configuration file [%s]" % (args.config)
          parser = ConfigParser.SafeConfigParser()
          parser.read(args.config)
-         print "Configuration file successfully read"         
+         print "Configuration file successfully read"
          try:
             baseOffset = parser.getint("configuration", "baseAddress")
             baseAddress = 0xD0
@@ -188,7 +188,7 @@ while 1:
                withrottleConnection = True
                bridgeTypeStr = "LNWINET"
             else:
-               print "Connection mode [%s] invalid, defaulting to ESU WiFi" % (dccConnectionMode) 
+               print "Connection mode [%s] invalid, defaulting to ESU WiFi" % (dccConnectionMode)
                esuConnection = True
                bridgeTypeStr = "ESU*NET"
          except Exception as e:
@@ -197,7 +197,7 @@ while 1:
             esuConnection = True
             withrottleConnection = False
             bridgeTypeStr = "ESU#NET"
-            
+
          try:
             serverIP = parser.get("configuration", "serverIP")
          except Exception as e:
@@ -213,7 +213,7 @@ while 1:
       except Exception as e:
          print "Yikes!  Exception reading configuration file"
          print e
-   
+
    if args.gitver is not None:
       try:
          gitvernum = int(args.gitver[0:6], 16)
@@ -243,7 +243,7 @@ while 1:
 
          if mrbee is not None:
             mrbee.disconnect()
-            
+
          if cmdStn is not None:
             cmdStn.disconnect()
 
@@ -303,7 +303,7 @@ while 1:
             cmdStn.connect(foundIP, serverPort)
 
          elif withrottleConnection is True:
-            
+
             print "PT-BRIDGE: Looking for %s server" % (operatingMode)
 
             if serverPort is None:
@@ -328,7 +328,7 @@ while 1:
             mrbee.setXbeeLED('D6', True);
             while True:
                continue
-               
+
          mrbee.setXbeeLED('D8', True);
 
          break
@@ -366,7 +366,7 @@ while 1:
    while 1:
       try:
          currentMillis = getMillis()
-         
+
          if currentMillis > (lastErrorTime + 500) and errorLightOn:
             print "Turning Error LED off"
             errorLightOn = False
@@ -386,9 +386,9 @@ while 1:
 
              if pingSuccess is not True:
                  raise Exception("Server unreachable")
-             
+
              lastPingTime = currentMillis
-             
+
 
          pkt = mrbee.getpkt()
 
@@ -430,9 +430,9 @@ while 1:
 
          # Create a MRBusThrottle object for every new Protothrottle that shows up
          if pkt.src not in throttles:
-            throttles[pkt.src] = MRBusThrottle.MRBusThrottle(pkt.src)
-      
-         throttles[pkt.src].update(cmdStn, pkt)
+            throttles[pkt.src] = MRBusThrottle.MRBusThrottle(pkt.src) #Sends the MRBusThrottle the data packet from mrbus.py via getpkt()
+
+         throttles[pkt.src].update(cmdStn, pkt) #Updates all the throttles?
 
          lastPktTime = getMillis()
          if False == pktLightOn:
@@ -458,7 +458,7 @@ while 1:
          print e
          exc_info = sys.exc_info()
          traceback.print_exception(*exc_info)
-         del exc_info         
+         del exc_info
 
          try:
             cmdStn.disconnect()
@@ -471,6 +471,5 @@ while 1:
             mrbee = None
          except:
             pass
-            
-         break
 
+         break

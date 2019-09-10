@@ -5,27 +5,27 @@
 #           Nathan D. Holmes <maverick@drgw.net>
 # File:     mrbus.py
 # License:  GNU General Public License v3
-# 
+#
 # LICENSE:
 #   Copyright (C) 2018 Mark Finn, Michael Petersen & Nathan Holmes
-#     
+#
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation; either version 3 of the License, or
 #   any later version.
-# 
+#
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
-# 
+#
 # DESCRIPTION:
 #   This class provides a way to interface with a MRBus control network
-#   ( https://www.iascaled.com/blog/an-introduction-to-mrbus/ ), either via 
+#   ( https://www.iascaled.com/blog/an-introduction-to-mrbus/ ), either via
 #   the Iowa Scaled MRB-CI2 to a wired network or via an XBee to a wireless
-#   network connected by serial (likely an FTDI adapter or similar) to the 
+#   network connected by serial (likely an FTDI adapter or similar) to the
 #   host computer.
-# 
+#
 # *************************************************************************
 
 import serial
@@ -33,8 +33,8 @@ import time
 from collections import deque
 import sys
 
-class packet(object):
-  def __init__(self, dest, src, cmd, data):
+class packet(object): #getpkt goes here
+  def __init__(self, dest, src, cmd, data): #d[0], d[1], d[5], d[6]:
     self.dest=dest
     self.src=src
     self.cmd=cmd
@@ -112,7 +112,7 @@ class mrbusSimple(object):
       port.write(':CMD MM=00;\r')
     else:
       port.write(':CMD MM=01;\r')
-  
+
     port.timeout=0
 
     self.pktlst=[]
@@ -144,7 +144,7 @@ class mrbusSimple(object):
 #      r=self.serial.read(max(1, self.serial.inWaiting()))
 #      while '\n' in r:
 #        i = r.index('\n')
-#        self.linebuf.append(list(self.linecbuf)+r[:i+1]        
+#        self.linebuf.append(list(self.linecbuf)+r[:i+1]
 #        self.linecbuf=deque()
 #        r=r[i+1:]
 #      if r:
@@ -152,27 +152,27 @@ class mrbusSimple(object):
 #    return self.linebuf.leftpop()
 
 
-  def getpkt(self):
+  def getpkt(self): #Figure this shit out - BS
     l = self.serial.readline()
 #      self.readline()
     if not l:
       return None
-    if l[-1] != '\n' and l[-1] != '\r':
-      self.log(1, '<<<'+l)
+    if l[-1] != '\n' and l[-1] != '\r': #\n is newline & \r is a carriage return
+      self.log(1, '<<<'+l) # Logs an error; if 1 its error
       return None
     l2=l.strip()
     if l2 == 'Ok':
-      self.log(0, '<<<'+l)
+      self.log(0, '<<<'+l) #Writes in Log file; if 0 its just log
       return None
-    if len(l2)<2 or l2[0]!='P' or l2[1]!=':':
+    if len(l2)<2 or l2[0]!='P' or l2[1]!=':': #Error if not right
       self.log(1, '<<<'+l)
       return None
-    d=[int(v,16) for v in l2[2:].split()]
-    if len(d)<6 or len(d)!=d[2]:
+    d=[int(v,16) for v in l2[2:].split()] #Starts at 2 of l2 and splits that into an array which loops converting from hex to int.
+    if len(d)<6 or len(d)!=d[2]: #Error if not right
       self.log(1, '<<<'+l)
       return None
-    self.log(0, '<<<'+l)
-    return packet(d[0], d[1], d[5], d[6:])
+    self.log(0, '<<<'+l) #Logs the values of l
+    return packet(d[0], d[1], d[5], d[6:])  #Returns a packet of d[0], d[1], d[5], and d[6:]. Don't know how many values that is
 
 
   def sendpkt(self, dest, data, src=None):
@@ -203,7 +203,7 @@ class mrbeeSimple(object):
     time.sleep(.1)
     while port.inWaiting():
       port.read(port.inWaiting())
- 
+
     port.timeout=0
 
     self.pktlst=[]
@@ -212,7 +212,7 @@ class mrbeeSimple(object):
     self.logall=logall
     self.log(0, "instantiated mrbeeSimple from %s" % port.name)
     self.addr=addr
-    
+
     self.setLED('D6', False)
     self.setLED('D7', False)
     self.setLED('D8', False)
@@ -234,7 +234,7 @@ class mrbeeSimple(object):
        self.setLED('D6', False)
        self.setLED('D7', False)
        self.setLED('D8', False)
-       self.setLED('D9', False)  
+       self.setLED('D9', False)
     except:
        pass
     self.serial.close()
@@ -245,47 +245,47 @@ class mrbeeSimple(object):
        incomingStr = self.serial.read()
        if incomingStr is None or len(incomingStr) == 0:
           break
-       
+
        incomingByte = ord(incomingStr[0])
        if 0x7E == incomingByte:
 #          self.log(0, "mrbee starting new packet")
           self.rxBuffer = [ incomingByte ]
           self.rxExcapeNext = 0
-          self.rxProcessing = 1 
+          self.rxProcessing = 1
           self.rxExpectedPktLen = 255
           continue
-          
+
        elif 0x7D == incomingByte:
 #          self.log(0, "mrbee setting escape")
           self.rxExcapeNext = 1
           continue
-       
+
        else:
           if self.rxProcessing == 0:
 #             self.log(0, "mrbee got byte %02X outside processing, ignoring\n" % incomingByte)
              continue
-       
+
           if self.rxExcapeNext != 0:
              incomingByte = incomingByte ^ 0x20
              self.rxExcapeNext = 0
 
-#          self.log(0, "mrbee got byte %02X\n" % incomingByte)       
-          
+#          self.log(0, "mrbee got byte %02X\n" % incomingByte)
+
           self.rxBuffer.append(incomingByte)
-    
+
           if len(self.rxBuffer) == 3:
              self.rxExpectedPktLen = self.rxBuffer[1] * 256 + self.rxBuffer[2] + 4
 
           if len(self.rxBuffer) == self.rxExpectedPktLen:
-#             self.log(0, "mrbee - think we may have a packet")                 
+#             self.log(0, "mrbee - think we may have a packet")
              pktChecksum = 0
              for i in range(3, self.rxExpectedPktLen):
                 pktChecksum = (pktChecksum + self.rxBuffer[i]) & 0xFF
-                               
+
              if 0xFF != pktChecksum:
                 # Error, conintue
                 self.log(0, "mrbee - checksum error - checksum is %02X" % (pktChecksum))
-                continue      
+                continue
 
              if 0x80 == self.rxBuffer[3]:
                 # 16 bit addressing
@@ -301,7 +301,7 @@ class mrbeeSimple(object):
 
 #                for i in range(0, self.rxExpectedPktLen-1):
 #                   print "Byte %02d: 0x%02X" % (i-pktDataOffset, self.rxBuffer[i])
-             
+
              return packet(self.rxBuffer[pktDataOffset + 0], self.rxBuffer[pktDataOffset + 1], self.rxBuffer[pktDataOffset + 5], self.rxBuffer[(pktDataOffset + 6):])
 
     return None
@@ -319,7 +319,7 @@ class mrbeeSimple(object):
        return
 
      txBuffer = [ ]
-     txBuffer.append(0x7E)          # 0 - Start 
+     txBuffer.append(0x7E)          # 0 - Start
      txBuffer.append(0x00)          # 1 - Len MSB
      txBuffer.append(0x05)          # 2 - Len LSB - five bytes
      txBuffer.append(0x08)          # 3 - API being called - AT CMD
@@ -330,12 +330,12 @@ class mrbeeSimple(object):
         txBuffer.append(5)       # 8 - '5' for on
      else:
         txBuffer.append(4)       # 8 - '4' for off
-     
+
      xbeeChecksum = 0
      for i in range(3, len(txBuffer)):
         xbeeChecksum = (xbeeChecksum + txBuffer[i]) & 0xFF
      xbeeChecksum = (0xFF - xbeeChecksum) & 0xFF;
-     txBuffer.append(xbeeChecksum)     
+     txBuffer.append(xbeeChecksum)
 
      txBufferEscaped = [ txBuffer[0] ]
      escapedChars = frozenset([0x7E, 0x7D, 0x11, 0x13])
@@ -347,9 +347,9 @@ class mrbeeSimple(object):
         else:
            txBufferEscaped.append(txBuffer[i])
 
-     self.serial.write(txBufferEscaped)  
-     return   
-  
+     self.serial.write(txBufferEscaped)
+     return
+
 
   def sendpkt(self, dest, data, src=None):
      if src == None:
@@ -358,7 +358,7 @@ class mrbeeSimple(object):
      txPktLen = 10 + len(data)   # 5 MRBus overhead, 5 XBee, and the data
 
      txBuffer = [ ]
-     txBuffer.append(0x7E)       # 0 - Start 
+     txBuffer.append(0x7E)       # 0 - Start
      txBuffer.append(0x00)       # 1 - Len MSB
      txBuffer.append(txPktLen)   # 2 - Len LSB
      txBuffer.append(0x01)       # 3 - API being called - transmit by 16 bit address
@@ -366,7 +366,7 @@ class mrbeeSimple(object):
      txBuffer.append(0xFF)       # 5 - MSB of dest address - broadcast 0xFFFF
      txBuffer.append(0xFF)       # 6 - LSB of dest address - broadcast 0xFFFF
      txBuffer.append(0x00)       # 7 - Transmit Options
-     
+
      txBuffer.append(dest)           # 8 / 0 - Destination
      txBuffer.append(src)            # 9 / 1 - Source
      txBuffer.append(len(data) + 5)  # 10/ 2 - Length
@@ -389,7 +389,7 @@ class mrbeeSimple(object):
      txBuffer.append(xbeeChecksum)
 
      txBufferEscaped = [ txBuffer[0] ]
-     
+
      escapedChars = frozenset([0x7E, 0x7D, 0x11, 0x13])
 
      for i in range(1, len(txBuffer)):
@@ -404,20 +404,20 @@ class mrbeeSimple(object):
 #     for i in txBufferEscaped:
 #        pkt = pkt + "%02x " % (i)
 #     print pkt
-     
-     self.serial.write(txBufferEscaped)     
-     
+
+     self.serial.write(txBufferEscaped)
+
 def mrbusCRC16Calculate(data):
    mrbusPktLen = data[2]
    crc = 0
-   
+
    for i in range(0, mrbusPktLen):
       if i == 3 or i == 4:
          continue
       else:
          a = data[i]
       crc = mrbusCRC16Update(crc, a)
-      
+
    return crc
 
 
@@ -426,9 +426,9 @@ def mrbusCRC16Update(crc, a):
    MRBus_CRC16_LowTable =  [ 0x00, 0x01, 0x03, 0x02, 0x07, 0x06, 0x04, 0x05, 0x0E, 0x0F, 0x0D, 0x0C, 0x09, 0x08, 0x0A, 0x0B ]
    crc16_h = (crc>>8) & 0xFF
    crc16_l = crc & 0xFF
-   
+
    i = 0
-   
+
    while i < 2:
       if i != 0:
          w = ((crc16_h << 4) & 0xF0) | ((crc16_h >> 4) & 0x0F)
@@ -436,18 +436,18 @@ def mrbusCRC16Update(crc, a):
       else:
          t = (crc16_h ^ a) & 0xF0
          t = ((t << 4) & 0xF0) | ((t >> 4) & 0x0F)
-         
+
       crc16_h = (crc16_h << 4) & 0xFF
       crc16_h = crc16_h | (crc16_l >> 4)
       crc16_l = (crc16_l << 4) & 0xFF
-      
+
       crc16_h = crc16_h ^ MRBus_CRC16_HighTable[t]
       crc16_l = crc16_l ^ MRBus_CRC16_LowTable[t]
-      
+
       i = i + 1
-      
+
    return (crc16_h<<8) | crc16_l
-      
+
 class mrbus(object):
   def disconnect(self):
      self.mrbs.disconnect()
@@ -462,7 +462,7 @@ class mrbus(object):
     if busType == 'mrbus':
        self.mrbs = mrbusSimple(port, addr, logfile, logall, extra)
        self.busType = 'mrbus'
-       
+
     elif busType == 'mrbee':
        self.mrbs = mrbeeSimple(port, addr, logfile, logall, extra)
        self.busType = 'mrbee'
@@ -483,7 +483,7 @@ class mrbus(object):
       if found:
         self.mrbs.log(1, "no available address found to use")
         raise Exception("no available address found to use")
-     
+
     self.addr=addr
     self.mrbs.addr=addr
 
@@ -568,7 +568,7 @@ class mrbus(object):
     return found
 
 
-        
+
   def scannodes(self, pkttype=ord('A'), rettype=ord('a'), wait=2):
     targets=set()
 
@@ -642,5 +642,3 @@ if __name__ == '__main__':
 #    mrbussimple_ex(ser)
 #    mrbus_ex(ser)
     node_ex(ser)
-
-

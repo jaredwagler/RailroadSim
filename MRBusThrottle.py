@@ -4,25 +4,25 @@
 #           Nathan D. Holmes <maverick@drgw.net>
 # File:     MRBusThrottle.py
 # License:  GNU General Public License v3
-# 
+#
 # LICENSE:
 #   Copyright (C) 2018 Michael Petersen & Nathan Holmes
-#     
+#
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation; either version 3 of the License, or
 #   any later version.
-# 
+#
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
-# 
+#
 # DESCRIPTION:
 #   This class provides a way parse incoming MRBus throttle packets (primarily
 #   from the ProtoThrottle ( http://www.protothrottle.com/ ) and send them
 #   on to a variety of command stations as a form of protocol translator.
-# 
+#
 # *************************************************************************
 
 import mrbus
@@ -30,7 +30,7 @@ import sys
 import time
 
 class MRBusThrottle:
-   
+
    def __init__(self, addr):
       self.locAddr = 0
       self.locAddrLong = True
@@ -42,29 +42,29 @@ class MRBusThrottle:
       self.throttleAddr = addr
       self.lastUpdate = 0
       return
-      
+
    def getLastUpdateTime(self):
       return self.lastUpdate
-   
+
    def disconnect(self, cmdStn):
       cmdStn.locomotiveSpeedSet(self.locObjID, 0, 0)
       cmdStn.locomotiveDisconnect(self.locObjID)
-      
-   
+
+
    def update(self, cmdStn, pkt):
       if pkt.cmd != 0x53 or len(pkt.data) != 10:  # Not a status update, bump out
          return
-      
+
       # print "MRBusThrottle (0x%02X): UPDATE loco %d" % (self.throttleAddr, self.locAddr)
-      
-      addr = pkt.data[0] * 256 + pkt.data[1]
-      if 0 != (addr & 0x8000):
+
+      addr = pkt.data[0] * 256 + pkt.data[1] #dest*256+src
+      if 0 != (addr & 0x8000): #Is this a signed int checker???? Needs further reseach.
          self.locAddrLong = False
          addr = addr & 0x007F
       else:
          self.locAddrLong = True
-         
-      speed = pkt.data[2] & 0x7F
+
+      speed = pkt.data[2] & 0x7F  #I have no clue what this is checking but it might be seeing if speeed goes above 128?
       if 1 == speed:
          speed = 0
          estop = 1
@@ -73,17 +73,17 @@ class MRBusThrottle:
          speed = speed - 1
       elif speed == 0:
          estop = 0
-      
-      if pkt.data[2] & 0x80:
+
+      if pkt.data[2] & 0x80: #I think this might be some sort of positive negative checker.
          direction = 0
       else:
          direction = 1
 
-      if (addr != self.locAddr):
+      if (addr != self.locAddr): #sets the locAddr to the address found above
          self.locAddr = addr
          self.locObjID = cmdStn.locomotiveObjectGet(self.locAddr, self.throttleAddr, self.locAddrLong)
          print "MRBusThrottle (0x%02X): Acquiring new locomotive %d - objID = %s" % (self.throttleAddr, self.locAddr, self.locObjID)
-      
+
       # Only send ESTOP if we just moved into that state
       if estop != self.locEStop and estop == 1:
          print "MRBusThrottle (0x%02X): Set ESTOP loco %d" % (self.throttleAddr, self.locAddr)
@@ -97,7 +97,7 @@ class MRBusThrottle:
 
       self.locSpeed = speed
       self.locDirection = direction
-      
+
       # On the first pass, get the function statuses from the command station
       # The LNWI / WiThrottle support this, others may in the future
       if self.locFunctions is None:
@@ -108,11 +108,11 @@ class MRBusThrottle:
          except Exception as e:
             print "MRBusThrottle (0x%02X): Exception in locomotiveFunctionsGet() for loco [%d]" % (self.throttleAddr, self.locAddr)
             self.locFunctions = [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ]
-         
+
       functions = [ 0,0,0,0,0,0,0,0,0,0,
                        0,0,0,0,0,0,0,0,0,0,
                        0,0,0,0,0,0,0,0,0 ]
-      
+
       for i in range(29):
          if i >= 0 and i < 8:
             if pkt.data[6] & (1<<i):
@@ -133,8 +133,7 @@ class MRBusThrottle:
             cmdStn.locomotiveFunctionSet(self.locObjID, i, functions[i])
 
       self.locFunctions = functions
-      
+
       self.lastUpdate = time.time()
-      
+
       return
-      
