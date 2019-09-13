@@ -4,6 +4,7 @@
 
 import RPi.GPIO as GPIO
 import time
+from ky040.KY040 import KY040
 
 GPIO.setmode(GPIO.BCM) #now we can use easy numbers
 
@@ -42,14 +43,14 @@ speedVal = 0
 while True: #main shit, should make it callable at a later point
     hornState = GPIO.input(horn)
     bellState = GPIO.input(bell)
-    
+
     currentThrottlePosition = getThrottlePosition()#sets throttle speed
     if currentThrottlePosition == None: #maintains throttle value when inbetween positions
         throttleVal = lastThrottlePosition
     else:
         lastThrottlePosition = currentThrottlePosition
         throttleVal = currentThrottlePosition
-    
+
     currentDirection = getDirection() #gets direction else none, 0 = forward, 1 = backwards, None = neutral
     if currentDirection == None:
         directionVal = lastDirection

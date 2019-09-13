@@ -1,4 +1,4 @@
-#KY040 Python Class
+ #KY040 Python Class
 #Martin O'Hanlon
 #stuffaboutcode.com
 
@@ -21,11 +21,11 @@ class KY040:
         self.switchBouncetime = switchBouncetime
 
         #setup pins
-        GPIO.setup(clockPin, GPIO.IN)
-        GPIO.setup(dataPin, GPIO.IN)
+        #GPIO.setup(clockPin, GPIO.IN) - Commented b/c Jimmy setup pins in readSensor.py
+        #GPIO.setup(dataPin, GPIO.IN) - Commented b/c Jimmy setup pins in readSensor.py
 
-        if None != self.switchPin:
-            GPIO.setup(switchPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        #if None != self.switchPin:
+            #GPIO.setup(switchPin, GPIO.IN, pull_up_down=GPIO.PUD_UP) - Commented b/c Jimmy setup pins in readSensor.py
 
     def start(self):
         GPIO.add_event_detect(self.clockPin, GPIO.FALLING, callback=self._clockCallback, bouncetime=self.rotaryBouncetime)
