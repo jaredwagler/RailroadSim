@@ -39,6 +39,10 @@ for pin in sensors:
 lastThrottlePosition = 0
 lastDirection = None
 speedVal = 0
+encoder1 = KY040(encoder1CLK, encoder1DT, rotaryCallback=rotaryChange)
+encoder2 = KY040(encoder2CLK, encoder2DT, rotaryCallback=rotaryChange)
+encoder1.start()
+encoder2.start()
 
 while True: #main shit, should make it callable at a later point
     hornState = GPIO.input(horn)
@@ -71,3 +75,5 @@ def getDirection():
         if not GPIO.input(pin):
             return position
     return None #train is in netural
+def rotaryChange(direction): #Input info here for encoders
+    print direction
