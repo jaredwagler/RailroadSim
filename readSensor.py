@@ -29,6 +29,7 @@ throttle_8 = 26
 sensors = (directionF, directionB, encoder1CLK, encoder1DT, encoder2CLK, encoder2DT, horn, bell, throttle_0, throttle_1, throttle_2, throttle_3, throttle_4, throttle_5, throttle_6, throttle_7, throttle_8)
 throttle = (throttle_0, throttle_1, throttle_2, throttle_3, throttle_4, throttle_5, throttle_6, throttle_7, throttle_8)
 direction = (directionF, directionB)
+speedLst = (0,15,30,40,50,70,85,100,127)
 
 #Just gonna set everything to be inputs
 for pin in sensors:
@@ -36,12 +37,13 @@ for pin in sensors:
 
 lastThrottlePosition = 0
 lastDirection = None
+speedVal = 0
 
 while True: #main shit, should make it callable at a later point
     hornState = GPIO.input(horn)
     bellState = GPIO.input(bell)
     
-    currentThrottlePosition = getThrottlePosition()
+    currentThrottlePosition = getThrottlePosition()#sets throttle speed
     if currentThrottlePosition == None: #maintains throttle value when inbetween positions
         throttleVal = lastThrottlePosition
     else:
@@ -54,6 +56,8 @@ while True: #main shit, should make it callable at a later point
     else:
         lastDirection = currentDirection
         directionVal = currentDirection
+
+    speedVal = speedLst[throttleVal]
 
 def getThrottlePosition(): #returns the position of the throtle else None
     for position, pin in enumerate(throttle):
