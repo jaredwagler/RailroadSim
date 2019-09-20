@@ -54,12 +54,6 @@ lastThrottlePosition = 0
 lastDirection = None
 speedVal = 0
 
-#Analog to Digital initalization
-spi = busio.SPI(clock = board.SCK, MISO = board.MSIO, MOSI = board.MOSI)
-cs = digitalio.DigitalInOut(board.SPI01) #Might need to change this. You can use dir(board) on th Pi to figure out the pins.
-chan0 = AnalogIn(mcp, MCP.P0)
-last_read = 0
-tolerance = 250
 
 #Enconder initalization
 encoder1 = KY040(encoder1CLK, encoder1DT, rotaryCallback=rotaryChange)
@@ -72,13 +66,13 @@ while True: #main shit, should make it callable at a later point
 	if hornState:
 		esu_send(cmdHorn) #send command
     bellState = GPIO.input(bell)
-	
+
 	if bellState:
 		esu_send(cmdBell) #send command
 
 	if eBrake:
 		esu_send(cmdEmergency) #send command
-		
+
 	if mute:
 		esu_send(cmdMute) #send command
     currentThrottlePosition = getThrottlePosition()#sets throttle speed
@@ -87,7 +81,7 @@ while True: #main shit, should make it callable at a later point
     else:
         lastThrottlePosition = currentThrottlePosition
         throttleVal = currentThrottlePosition
-	
+
     currentDirection = getDirection() #gets direction else none, 0 = forward, 1 = backwards, None = neutral
     if currentDirection == None:
         directionVal = lastDirection
@@ -97,15 +91,6 @@ while True: #main shit, should make it callable at a later point
 
     speedVal = speedLst[throttleVal]
 	esu_send(cmdThrottle,speedVal) #send command
-
-    trim_pot_changed = False
-    trim_pot = chan0.values
-    pot_adujust = abs(trim_pot - last_read)
-    if pot_adjust > tolerance:
-        trim_pot_changed = True
-    if trim_pot_changed:
-        set_potentiometer = remap_range(trim_pot, 0,65535, 0, 100) #Change 100 to max range that we want
-        last_read = trim_pot
 
 def getThrottlePosition(): #returns the position of the throtle else None
     for position, pin in enumerate(throttle):
@@ -120,9 +105,3 @@ def getDirection():
     return None #train is in netural
 def rotaryChange(direction): #Input info here for encoders
     print direction
-
-def remap_range(value, left_min, left_max, right_min, right_max):
-    left_span = left_max - left_min
-    right_span = right_max - right_min
-    valueScaled = int(value - left_min) / int(left_span)
-    return int(right_min + (valueScaled * right_span))
