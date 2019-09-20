@@ -1,6 +1,6 @@
-#Purpose is to read all sensor data and make into a sigle format that other scripts can use
+#Purpose is to read all sensor data and make into a single format that other scripts can use
 #Created by: Daniel Keats
-#Updated on: 09/07/2019
+#Updated on: 09/17/2019
 
 import RPi.GPIO as GPIO
 import time
@@ -31,6 +31,15 @@ throttle_5 = 6
 throttle_6 = 13
 throttle_7 = 19
 throttle_8 = 26
+eBrake = None #get value for emergency brake
+mute = None #get value for sound mute
+
+# Declaration of commands and their corresponding number
+cmdBell = 1
+cmdHorn = 2
+cmdMute = 8
+cmdEmergency = 15
+cmdThrottle = 29
 
 sensors = (directionF, directionB, encoder1CLK, encoder1DT, encoder2CLK, encoder2DT, horn, bell, throttle_0, throttle_1, throttle_2, throttle_3, throttle_4, throttle_5, throttle_6, throttle_7, throttle_8)
 throttle = (throttle_0, throttle_1, throttle_2, throttle_3, throttle_4, throttle_5, throttle_6, throttle_7, throttle_8)
@@ -59,16 +68,26 @@ encoder1.start()
 encoder2.start()
 
 while True: #main shit, should make it callable at a later point
-    hornState = GPIO.input(horn)
+    hornState = GPIO.input(horn)-
+	if hornState:
+		esu_send(cmdHorn) #send command
     bellState = GPIO.input(bell)
+	
+	if bellState:
+		esu_send(cmdBell) #send command
 
+	if eBrake:
+		esu_send(cmdEmergency) #send command
+		
+	if mute:
+		esu_send(cmdMute) #send command
     currentThrottlePosition = getThrottlePosition()#sets throttle speed
     if currentThrottlePosition == None: #maintains throttle value when inbetween positions
         throttleVal = lastThrottlePosition
     else:
         lastThrottlePosition = currentThrottlePosition
         throttleVal = currentThrottlePosition
-
+	
     currentDirection = getDirection() #gets direction else none, 0 = forward, 1 = backwards, None = neutral
     if currentDirection == None:
         directionVal = lastDirection
@@ -77,6 +96,7 @@ while True: #main shit, should make it callable at a later point
         directionVal = currentDirection
 
     speedVal = speedLst[throttleVal]
+	esu_send(cmdThrottle,speedVal) #send command
 
     trim_pot_changed = False
     trim_pot = chan0.values
