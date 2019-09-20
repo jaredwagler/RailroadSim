@@ -53,7 +53,7 @@ for pin in sensors:
 lastThrottlePosition = 0
 lastDirection = None
 speedVal = 0
-
+brake = 0
 
 #Enconder initalization
 encoder1 = KY040(encoder1CLK, encoder1DT, rotaryCallback=rotaryChange)
@@ -61,7 +61,20 @@ encoder2 = KY040(encoder2CLK, encoder2DT, rotaryCallback=rotaryChange)
 encoder1.start()
 encoder2.start()
 
+#Analog to digital
+spi = busio.SPI(clock=board.SCK, MISO = board.MISO, MOSI = board.MOSI)
+cs = digitalio.DigitalInOut(board.D5) #Change pin number
+mcp = MCP.MCP3008(spi, cs)
+chan = AnalogIn(mcp, mcp.p0) #Change pin
+last_read = 0
+tolerance = 250 #Change to make the jitter or not jitter
+
 while True: #main shit, should make it callable at a later point
+    pot_value = chan.value
+    pot_adjust = abs(pot_value - last_read)
+    if pot_adjust > tolerance:
+        brake = getbrake(pot_value)
+
     hornState = GPIO.input(horn)-
 	if hornState:
 		esu_send(cmdHorn,1) #send command
@@ -115,3 +128,6 @@ def getDirection():
     return None #train is in netural
 def rotaryChange(direction): #Input info here for encoders
     print direction
+
+def getBrake(voltIn):
+    return convertedValue = int((int(voltIn)/ int(65535)) * 127)
