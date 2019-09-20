@@ -1,6 +1,6 @@
 #Master function for sending data to esubridge
 #Created by: Jared Wagler
-#Updated on: 09/17/2019
+#Updated on: 09/20/2019
 
 ESU_PORT = 15471
 ESU_RCV_SZ = 1024
