@@ -34,7 +34,7 @@ throttle_8 = 26
 eBrake = None #get value for emergency brake
 mute = None #get value for sound mute
 
-# Declaration of commands and their corresponding number
+# Declaration of commands and their corresponding function number
 cmdBell = 1
 cmdHorn = 2
 cmdMute = 8
@@ -77,27 +77,16 @@ while True: #main shit, should make it callable at a later point
     if pot_adjust > tolerance:
         brake = getbrake(pot_value)
 
-    hornState = GPIO.input(horn)-
-	if hornState:
-		esu_send(cmdHorn,1) #send command
-    else:
-        esu_send(cmdHorn,0) #send command
+    hornState = GPIO.input(horn)
+	esu_send(cmdHorn,hornState) #send command
 
     bellState = GPIO.input(bell)
-	if bellState:
-		esu_send(cmdBell,1) #send command
-    else:
-        esu_send(cmdBell,0) #send command
+	esu_send(cmdBell,bellState) #send command
 
-	if eBrake:
-		esu_send(cmdEmergency,1) #send command
-    else:
-        esu_send(cmdEmergency,0) #send command
+	esu_send(cmdEmergency,eBrake) #send command
 
-	if mute:
-		esu_send(cmdMute,1) #send command
-    else:
-        esu_send(cmdMute,0) #send command
+	esu_send(cmdMute,mute) #send command
+
     currentThrottlePosition = getThrottlePosition()#get position from buttons
     if currentThrottlePosition == None: #Check to see if we are inbetween positions, if so keep last val
         throttleVal = lastThrottlePosition
