@@ -1,6 +1,6 @@
 #Purpose is to read all sensor data and make into a single format that other scripts can use
 #Created by: Daniel Keats
-#Updated on: 09/17/2019
+#Updated on: 09/24/2019
 
 import RPi.GPIO as GPIO
 import time
@@ -114,6 +114,9 @@ while True: #main shit, should make it callable at a later point
         directionVal = currentDirection
 
     speedVal = speedLst[throttleVal]
+
+    print("Throttle= " + throttleVal + "Brake= " + brake + "Direction= " + directionVal + "Horn= " + hornState + "Bell= " + bellState)
+    Sleep(0.2)
 
 def getThrottlePosition(): #returns the position of the throtle else None
     for position, pin in enumerate(throttle):
