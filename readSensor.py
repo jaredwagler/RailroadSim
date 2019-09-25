@@ -41,15 +41,17 @@ cmdMute = 8
 cmdEmergency = 15
 cmdDirection = 29
 
+#Handy dandy lists to make life easier
 sensors = (directionF, directionB, encoder1CLK, encoder1DT, encoder2CLK, encoder2DT, horn, bell, throttle_0, throttle_1, throttle_2, throttle_3, throttle_4, throttle_5, throttle_6, throttle_7, throttle_8)
 throttle = (throttle_0, throttle_1, throttle_2, throttle_3, throttle_4, throttle_5, throttle_6, throttle_7, throttle_8)
-direction = (directionF, directionB)
+direction = (directionF, directionB)#Ya this one is kind of pointless
 speedLst = (0,15,30,40,50,70,85,100,127)
 
 #Just gonna set everything to be inputs
 for pin in sensors:
     GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
+#Inital values because Java is better
 lastThrottlePosition = 0
 lastDirection = None
 speedVal = 0
@@ -96,24 +98,22 @@ while True: #main shit, should make it callable at a later point
 		esu_send(cmdMute,1) #send command
     else:
         esu_send(cmdMute,0) #send command
-    currentThrottlePosition = getThrottlePosition()#sets throttle speed
-    throttle_send(currentThrottlePosition) #sends throttle speed
-    if currentThrottlePosition == None: #maintains throttle value when inbetween positions
+    currentThrottlePosition = getThrottlePosition()#get position from buttons
+    if currentThrottlePosition == None: #Check to see if we are inbetween positions, if so keep last val
         throttleVal = lastThrottlePosition
     else:
         lastThrottlePosition = currentThrottlePosition
-        throttleVal = currentThrottlePosition
+        throttleVal = currentThrottlePosition #if diff update new value
+    speedVal = speedLst[throttleVal]
+    throttle_send(speedVal) #sends throttle speed
 
     currentDirection = getDirection() #gets direction else none, 0 = forward, 1 = backwards, None = neutral
-    esu_send(cmdDirection,currentDirection) #sends direction to function
-
     if currentDirection == None:
         directionVal = lastDirection
     else:
         lastDirection = currentDirection
         directionVal = currentDirection
-
-    speedVal = speedLst[throttleVal]
+    esu_send(cmdDirection,directionVal) #sends direction to function
 
     print("Throttle= " + throttleVal + "Brake= " + brake + "Direction= " + directionVal + "Horn= " + hornState + "Bell= " + bellState)
     Sleep(0.2)
