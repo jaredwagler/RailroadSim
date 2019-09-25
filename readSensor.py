@@ -115,7 +115,7 @@ while True: #main shit, should make it callable at a later point
         directionVal = currentDirection
     esu_send(cmdDirection,directionVal) #sends direction to function
 
-    print("Throttle= " + throttleVal + "Brake= " + brake + "Direction= " + directionVal + "Horn= " + hornState + "Bell= " + bellState)
+    print("Throttle= " + throttleVal + "Brake= " + brake + "Direction= " + directionVal + "Horn= " + hornState + "Bell= " + bellState)#For current testing, must be removed later
     Sleep(0.2)
 
 def getThrottlePosition(): #returns the position of the throtle else None
