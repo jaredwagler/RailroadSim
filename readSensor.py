@@ -10,6 +10,7 @@ import board
 import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
 from ky040.KY040 import KY040
+import sendData
 
 GPIO.setmode(GPIO.BCM) #now we can use easy numbers
 
@@ -78,7 +79,7 @@ while True: #main shit, should make it callable at a later point
         brake = getbrake(pot_value)
 
     hornState = GPIO.input(horn)
-	esu_send(cmdHorn,hornState) #send command
+    esu_send(cmdHorn,hornState)#send command
 
     bellState = GPIO.input(bell)
 	esu_send(cmdBell,bellState) #send command
