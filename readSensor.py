@@ -68,7 +68,7 @@ encoder2.start()
 spi = busio.SPI(clock=board.SCK, MISO = board.MISO, MOSI = board.MOSI)
 cs = digitalio.DigitalInOut(board.D5) #Change pin number
 mcp = MCP.MCP3008(spi, cs)
-chan = AnalogIn(mcp, mcp.p0) #Change pin
+chan = AnalogIn(mcp, MCP.P0) #Change pin
 last_read = 0
 tolerance = 250 #Change to make the jitter or not jitter
 
@@ -120,7 +120,7 @@ def getDirection():
             return position
     return None #train is in netural
 def rotaryChange(direction): #Input info here for encoders
-    print direction
+    print(direction)
 
 def getBrake(voltIn):
-    return convertedValue = int((int(voltIn)/ int(65535)) * 127)
+    return int((int(voltIn)/ int(65535)) * 127)
