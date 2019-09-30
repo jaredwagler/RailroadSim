@@ -52,6 +52,23 @@ speedLst = (0,15,30,40,50,70,85,100,127)
 for pin in sensors:
     GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
+def getThrottlePosition(): #returns the position of the throtle else None
+    for position, pin in enumerate(throttle):
+        if not GPIO.input(pin): #BROKEN
+            return position
+    return None #inbetween throttle positions
+
+def getDirection():
+    for position, pin in enumerate(direction):
+        if not GPIO.input(pin):
+            return position
+    return None #train is in netural
+def rotaryChange(direction): #Input info here for encoders
+    print(direction)
+
+def getBrake(voltIn):
+    return int((int(voltIn)/ int(65535)) * 127)
+
 #Inital values because Java is better
 lastThrottlePosition = 0
 lastDirection = None
@@ -77,17 +94,8 @@ while True: #main shit, should make it callable at a later point
     pot_adjust = abs(pot_value - last_read)
     if pot_adjust > tolerance:
         brake = getbrake(pot_value)
-
     hornState = GPIO.input(horn)
-    esu_send(cmdHorn,hornState)#send command
-
     bellState = GPIO.input(bell)
-	esu_send(cmdBell,bellState) #send command
-
-	esu_send(cmdEmergency,eBrake) #send command
-
-	esu_send(cmdMute,mute) #send command
-
     currentThrottlePosition = getThrottlePosition()#get position from buttons
     if currentThrottlePosition == None: #Check to see if we are inbetween positions, if so keep last val
         throttleVal = lastThrottlePosition
@@ -95,7 +103,6 @@ while True: #main shit, should make it callable at a later point
         lastThrottlePosition = currentThrottlePosition
         throttleVal = currentThrottlePosition #if diff update new value
     speedVal = speedLst[throttleVal]
-    throttle_send(speedVal) #sends throttle speed
 
     currentDirection = getDirection() #gets direction else none, 0 = forward, 1 = backwards, None = neutral
     if currentDirection == None:
@@ -103,24 +110,4 @@ while True: #main shit, should make it callable at a later point
     else:
         lastDirection = currentDirection
         directionVal = currentDirection
-    esu_send(cmdDirection,directionVal) #sends direction to function
-
-    print("Throttle= " + throttleVal + "Brake= " + brake + "Direction= " + directionVal + "Horn= " + hornState + "Bell= " + bellState)#For current testing, must be removed later
     time.sleep(0.2)
-
-def getThrottlePosition(): #returns the position of the throtle else None
-    for position, pin in enumerate(throttle):
-        if not GPIO.input(pin):
-            return position
-    return None #inbetween throttle positions
-
-def getDirection():
-    for position, pin in enumerate(direction):
-        if not GPIO.input(pin):
-            return position
-    return None #train is in netural
-def rotaryChange(direction): #Input info here for encoders
-    print(direction)
-
-def getBrake(voltIn):
-    return int((int(voltIn)/ int(65535)) * 127)
