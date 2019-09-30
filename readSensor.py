@@ -9,7 +9,7 @@ import digitalio
 import board
 import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
-from ky040.KY040 import KY040
+from KY040 import KY040
 import sendData
 
 GPIO.setmode(GPIO.BCM) #now we can use easy numbers
@@ -106,7 +106,7 @@ while True: #main shit, should make it callable at a later point
     esu_send(cmdDirection,directionVal) #sends direction to function
 
     print("Throttle= " + throttleVal + "Brake= " + brake + "Direction= " + directionVal + "Horn= " + hornState + "Bell= " + bellState)#For current testing, must be removed later
-    Sleep(0.2)
+    time.sleep(0.2)
 
 def getThrottlePosition(): #returns the position of the throtle else None
     for position, pin in enumerate(throttle):
