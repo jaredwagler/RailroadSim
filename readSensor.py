@@ -8,10 +8,10 @@ import spidev
 import board
 import busio
 import digitalio
-from pyky040 import pyky040
-import sendData
 import threading
 import adafruit_mcp3xxx.mcp3008 as MCP
+import esu
+from pyky040 import pyky040
 from adafruit_mcp3xxx.analog_in import AnalogIn
 
 GPIO.setmode(GPIO.BCM) #now we can use easy numbers
@@ -55,6 +55,15 @@ sensors = (directionF, directionB, encoder1CLK, encoder1DT, encoder2CLK, encoder
 throttle = (throttle_0, throttle_1, throttle_2, throttle_3, throttle_4, throttle_5, throttle_6, throttle_7, throttle_8)
 direction = (directionF, directionB)#Ya this one is kind of pointless
 speedLst = (0,15,30,40,50,70,85,100,127)
+
+#Connection Code
+conPoint = None
+serverPort = None
+serverPort = 15471
+serverIP = None
+serverIP = "Set this shit"
+conPoint = esu.ESUConnection()
+conPoint.connect(foundIP, serverPort)
 
 #Just gonna set everything to be inputs
 for pin in sensors:
