@@ -4,32 +4,32 @@
 #           Michael D. Petersen <railfan@drgw.net>
 # File:     withrottle.py
 # License:  GNU General Public License v3
-# 
+#
 # LICENSE:
 #   Copyright (C) 2018 Michael Petersen & Nathan Holmes
-#     
+#
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation; either version 3 of the License, or
 #   any later version.
-# 
+#
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
-# 
+#
 # DESCRIPTION:
 #   This class provides a client to connect to a Digitrax LNWI
 #   adapter.  The standard WiThrottle driver cannot be used because
 #   Digitrax only chose to implement a subset of the JMRI protocol.
-# 
+#
 # *************************************************************************
 
 import socket
 import time
 
 class WiThrottleConnection:
-   """A client object to talk to a JMRI WiFi Throttle server or compatible.  
+   """A client object to talk to a JMRI WiFi Throttle server or compatible.
       This class is capable of handling multiple locomotives simultaneously via
       independent socket connections."""
 
@@ -52,7 +52,7 @@ class WiThrottleConnection:
 
    def __init__(self):
       """Constructor for the object.  Any internal initialization should occur here."""
-      
+
    def connect(self, ip, port, mode="JMRI"):
       """Since the LNWI only understands a subset of Multithrottle commands, open up a single connection
          to multiplex everything through."""
@@ -63,7 +63,7 @@ class WiThrottleConnection:
       else:
          print "Operating Mode [%s] not understood, defaulting to JMRI" % (mode)
          self.operatingMode = "JMRI"
-         
+
       print "%s Connect: Connecting to server [%s] port [%d]" % (self.operatingMode, ip, port)
       self.ip = ip
       self.port = port
@@ -146,7 +146,7 @@ class WiThrottleConnection:
                   print "%s RX: Cab [%s] needs to steal locomotive [%s]\n" % (self.operatingMode, throttle[1:2], cmd)
                   cmdStr = resp
                   self.conn.sendall(cmdStr)
-                  
+
                elif throttle[2:3] == "A":
                   if cmd[0:1] == 'F':
                      funcNum = int(cmd[2:])
@@ -155,10 +155,10 @@ class WiThrottleConnection:
                      print "%s RX: Cab [%s] set func %d to %d " % (self.operatingMode, throttle[1:2], funcNum, funcVal)
                      if funcNum == 28:
                         self.funcUpdated[throttle[1:2]] = True
-                  
+
             except:
                print "%s RX: Multithrottle packet exception" % (self.operatingMode)
-               
+
          else:
             print "%s RX: Unknown host->client [%s]\n" % (self.operatingMode, resp)
 
@@ -196,7 +196,7 @@ class WiThrottleConnection:
 
       self.funcStatus[self.activeThrottles[cabID]] = [0] * 29  # Array of 29 zeros for function status
       self.funcUpdated[self.activeThrottles[cabID]] = False
-      
+
       #Drop anything this cab might have had before.  If nothing, no harm
       self.rxtx("M%1.1s-*<;>r\n" % (self.activeThrottles[objID['addr']]))
 
@@ -215,12 +215,12 @@ class WiThrottleConnection:
          time.sleep(0.01)
 
       return objID
-         
+
    def locomotiveFunctionsGet(self, objID):
       print "%s locomotiveFunctionsGet(%d)" % (self.operatingMode, objID['locoNum'])
       throttleLetter = self.activeThrottles[objID['addr']]
       return self.funcStatus[throttleLetter]
-         
+
    def locomotiveEmergencyStop(self, objID):
       """Issues an emergency stop command to a locomotive handle that has been previously acquired with locomotiveObjectGet()."""
       print "%s locomotiveEmergencyStop(%d)" % (self.operatingMode, objID['locoNum'])
@@ -228,25 +228,25 @@ class WiThrottleConnection:
 
    # For the purposes of this function, direction of 0=forward, 1=reverse
    def locomotiveSpeedSet(self, objID, speed, direction=0):
-      """Sets the speed and direction of a locomotive via a handle that has been previously acquired with locomotiveObjectGet().  
+      """Sets the speed and direction of a locomotive via a handle that has been previously acquired with locomotiveObjectGet().
          Speed is 0-127, Direction is 0=forward, 1=reverse."""
       speed = int(speed)
       direction = int(direction)
 
       print "%s locomotiveSpeedSet(%d): set speed %d %s" % (self.operatingMode, objID['locoNum'], speed, ["FWD","REV"][direction])
 
-      
+
       if direction != 0 and direction != 1:
          speed = 0
          direction = 0
-      
+
       if speed >= 127 or speed < 0:
          speed = 0
 
       self.rxtx("M%1.1sA*<;>V%d\n" % (self.activeThrottles[objID['addr']], speed))
       # Direction is 0=REV, 1=FWD on WiThrottle
       self.rxtx("M%1.1sA*<;>R%d\n" % (self.activeThrottles[objID['addr']], [1,0][direction]))
-   
+
    def locomotiveFunctionSet(self, objID, funcNum, funcVal):
       if self.operatingMode == "LNWI":
          self.locomotiveFunctionSetLNWI(objID, funcNum, funcVal)
@@ -260,21 +260,21 @@ class WiThrottleConnection:
       # Thankfully, JMRI supports the "force function" ('f') command as described in the spec
       # so we can avoid all the nasties as we have in LNWI mode
       print "JMRI locomotiveFunctionSet(%d): set func %d to %d" % (objID['locoNum'], funcNum, funcVal)
-      
-      self.rxtx("M%1.1sA*<;>f%d%d\n" % (self.activeThrottles[objID['addr']], funcVal, funcNum))   
-   
+
+      self.rxtx("M%1.1sA*<;>f%d%d\n" % (self.activeThrottles[objID['addr']], funcVal, funcNum))
+
    def locomotiveFunctionSetLNWI(self, objID, funcNum, funcVal):
-      """Sets or clears a function on a locomotive via a handle that has been previously acquired with locomotiveObjectGet().  
+      """Sets or clears a function on a locomotive via a handle that has been previously acquired with locomotiveObjectGet().
          funcNum is 0-28 for DCC, funcVal is 0 or 1."""
 
-      # This is the nasty part.  The LNWI doesn't support the "force function" ('f') command, so we have to do 
+      # This is the nasty part.  The LNWI doesn't support the "force function" ('f') command, so we have to do
       # weird crap here to actually get the function in the state we want.
 
       funcNum = int(funcNum)
       funcVal = int(funcVal)
 
       print "LNWI locomotiveFunctionSet(%d): set func %d to %d" % (objID['locoNum'], funcNum, funcVal)
- 
+
       if funcNum == 2:  # 2 is non-latching, all others are latching
          self.rxtx("M%1.1sA*<;>F%d%d\n" % (self.activeThrottles[objID['addr']], funcVal, funcNum))
       else:
@@ -299,7 +299,3 @@ class WiThrottleConnection:
          self.rxtx("*\n")
       else:
          self.rxtx(None)
-
-
-   
-   

@@ -10,7 +10,7 @@ import busio
 import digitalio
 import threading
 import adafruit_mcp3xxx.mcp3008 as MCP
-import esu
+import WiThrottle
 from pyky040 import pyky040
 from adafruit_mcp3xxx.analog_in import AnalogIn
 
@@ -58,13 +58,15 @@ speedLst = (0,15,30,40,50,70,85,100,127)
 
 #Connection Code
 conPoint = None
-serverPort = None
-serverPort = 15471
-serverIP = None
+serverPort = 12090
 serverIP = "Set this shit"
-conPoint = esu.ESUConnection()
-conPoint.connect(foundIP, serverPort)
-
+operatingMode = "JMRI"
+conPoint = withrottle.WiThrottleConnection()
+conPoint.connect(serverIP, serverPort, operatingMode)
+locAddr = "Set this Shit"
+throttleAddr = "Set this Shit"
+locAddrLong = True #idk it's a fucking boolean check on MRBusThrottle
+locObjID = conpoint.locomotiveObjectGet(self.locAddr, self.throttleAddr, self.locAddrLong)
 #Just gonna set everything to be inputs
 for pin in sensors:
     GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
@@ -123,4 +125,6 @@ while True:
     else:
         lastDirection = currentDirection
         directionVal = currentDirection
+    conPoint.locomotiveSpeedSet(locObjID,speedVal, currentDirection)
+    conPoint.update()
     time.sleep(0.2)
