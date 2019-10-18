@@ -10,6 +10,7 @@ import busio
 import digitalio
 import threading
 import adafruit_mcp3xxx.mcp3008 as MCP
+import gui
 import WiThrottle
 from pyky040 import pyky040
 from adafruit_mcp3xxx.analog_in import AnalogIn
@@ -56,14 +57,20 @@ throttle = (throttle_0, throttle_1, throttle_2, throttle_3, throttle_4, throttle
 direction = (directionF, directionB)#Ya this one is kind of pointless
 speedLst = (0,15,30,40,50,70,85,100,127)
 
+#Declaration of values pulled from the gui
+serverIP = ""
+locAddr = ""
+
+#Gui prompt
+while ((serverIP == "") and (locAddr == "")):
+    serverIP, locAddr = gui.returnValues()
+
 #Connection Code
 conPoint = None
 serverPort = 12090
-serverIP = "Set this shit"
 operatingMode = "JMRI"
 conPoint = withrottle.WiThrottleConnection()
 conPoint.connect(serverIP, serverPort, operatingMode)
-locAddr = "Set this Shit"
 throttleAddr = "Set this Shit"
 locAddrLong = True #idk it's a fucking boolean check on MRBusThrottle
 locObjID = conpoint.locomotiveObjectGet(self.locAddr, self.throttleAddr, self.locAddrLong)
