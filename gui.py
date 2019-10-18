@@ -17,9 +17,9 @@ class userGui:
             if ((serverIp != "") and (locoAddress != "")):
                 window.destroy()
         
-        window.title("Server IP and Locomotive Address")
+        window.title("Enter IP and Address")
         
-        window.geometry('250x100')
+        window.geometry('310x100')
 
         prompt1 = Label(window, text="Enter Server IP: ")
         prompt1.grid(column=1, row=1)

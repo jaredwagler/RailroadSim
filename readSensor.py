@@ -11,7 +11,7 @@ import digitalio
 import threading
 import adafruit_mcp3xxx.mcp3008 as MCP
 import gui
-import WiThrottle
+import withrottle
 from pyky040 import pyky040
 from adafruit_mcp3xxx.analog_in import AnalogIn
 
@@ -60,20 +60,20 @@ speedLst = (0,15,30,40,50,70,85,100,127)
 #Declaration of values pulled from the gui
 serverIP = ""
 locAddr = ""
+guiInput = gui.userGui()
 
 #Gui prompt
 while ((serverIP == "") and (locAddr == "")):
-    serverIP, locAddr = gui.returnValues()
+    serverIP, locAddr = guiInput.returnValues()
 
 #Connection Code
 conPoint = None
 serverPort = 12090
-operatingMode = "JMRI"
 conPoint = withrottle.WiThrottleConnection()
-conPoint.connect(serverIP, serverPort, operatingMode)
-throttleAddr = "Set this Shit"
-locAddrLong = True #idk it's a fucking boolean check on MRBusThrottle
-locObjID = conpoint.locomotiveObjectGet(self.locAddr, self.throttleAddr, self.locAddrLong)
+conPoint.connect(serverIP, serverPort)
+throttleAddr = 13
+locAddrLong = False #idk it's a fucking boolean check on MRBusThrottle
+locObjID = conPoint.locomotiveObjectGet(int(locAddr), throttleAddr, locAddrLong)
 #Just gonna set everything to be inputs
 for pin in sensors:
     GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
@@ -88,7 +88,7 @@ def getDirection():
     for position, pin in enumerate(direction):
         if GPIO.input(pin):
             return position
-    return None #train is in netural
+    return 0 #train is in netural
 
 def getHeadLights(scale_position):
     return(scale_position)
