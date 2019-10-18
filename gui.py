@@ -2,14 +2,20 @@ from tkinter import *
 
 class userGui:
     def __init__(self):
+
+        self.serverIp = ""
+        self.locoAddress = ""
+
         window = Tk()
 
         def clicked():
-            ServerIp = txt1.get()
-            locoAddress = txt2.get() 
+            global serverIp
+            global locoAddress
+            serverIp = txt1.get()
+            locoAddress = txt2.get()
 
-            if ((ServerIp != "") and (locoAddress != "")):
-                print("gamer rage")
+            if ((serverIp != "") and (locoAddress != "")):
+                window.destroy()
         
         window.title("Server IP and Locomotive Address")
         
@@ -31,3 +37,8 @@ class userGui:
         btn.grid(column=1, row=3)
 
         window.mainloop()
+
+    def returnValues(self):
+        global serverIp
+        global locoAddress
+        return serverIp, locoAddress
