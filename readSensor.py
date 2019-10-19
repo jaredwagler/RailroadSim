@@ -88,12 +88,44 @@ def getDirection():
     for position, pin in enumerate(direction):
         if GPIO.input(pin):
             return position
-    return 0 #train is in netural
+    return 0
 
 def getHeadLights(scale_position):
+    if(scale_positon >= 0 & scale_position < 25):
+        conPoint.locomotiveFunctionSet(locObjID, 0, 0)
+        conPoint.locomotiveFunctionSet(locObjID, 7, 0)
+        conPoint.locomotiveFunctionSet(locObjID, 9, 0)
+    elif(scale_positon >= 25 & scale_positon < 50):
+        conPoint.locomotiveFunctionSet(locObjID, 0, 1)
+        conPoint.locomotiveFunctionSet(locObjID, 7, 1)
+        conPoint.locomotiveFunctionSet(locObjID, 9, 0)
+    elif(scale_positon >= 50 & scale_position < 75):
+        conPoint.locomotiveFunctionSet(locObjID, 0, 1)
+        conPoint.locomotiveFunctionSet(locObjID, 7, 0)
+        conPoint.locomotiveFunctionSet(locObjID, 9, 0)
+    elif(scale_position >= 75 & scale_positon < 100):
+        conPoint.locomotiveFunctionSet(locObjID, 0, 1)
+        conPoint.locomotiveFunctionSet(locObjID, 7, 0)
+        conPoint.locomotiveFunctionSet(locObjID, 9, 1)
     return(scale_position)
 
 def getBackLights(scale_position):
+    if(scale_positon >= 0 & scale_position < 25):
+        conPoint.locomotiveFunctionSet(locObjID, 0, 0)
+        conPoint.locomotiveFunctionSet(locObjID, 7, 0)
+        conPoint.locomotiveFunctionSet(locObjID, 9, 0)
+    elif(scale_positon >= 25 & scale_positon < 50):
+        conPoint.locomotiveFunctionSet(locObjID, 0, 1)
+        conPoint.locomotiveFunctionSet(locObjID, 7, 1)
+        conPoint.locomotiveFunctionSet(locObjID, 9, 0)
+    elif(scale_positon >= 50 & scale_position < 75):
+        conPoint.locomotiveFunctionSet(locObjID, 0, 1)
+        conPoint.locomotiveFunctionSet(locObjID, 7, 0)
+        conPoint.locomotiveFunctionSet(locObjID, 9, 0)
+    elif(scale_position >= 75 & scale_positon < 100):
+        conPoint.locomotiveFunctionSet(locObjID, 0, 1)
+        conPoint.locomotiveFunctionSet(locObjID, 7, 0)
+        conPoint.locomotiveFunctionSet(locObjID, 9, 1)
     return(scale_position)
 
 #Encoder Code
@@ -133,5 +165,7 @@ while True:
         lastDirection = currentDirection
         directionVal = currentDirection
     conPoint.locomotiveSpeedSet(locObjID,speedVal, currentDirection)
+    conPoint.locomotiveFunctionSet(locObjID, 1, bellState) #Bell
+    conPoint.locomotiveFunctionSet(locObjID, 2, hornState) #Horn is the new meta
     conPoint.update()
     time.sleep(0.2)
