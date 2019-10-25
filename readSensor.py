@@ -1,6 +1,6 @@
 #Purpose is to read all sensor data and make into a single format that other scripts can use
 #Created by: Daniel Keats
-#Updated on: 09/24/2019
+#Updated on: 10/24/2019
 
 import RPi.GPIO as GPIO
 import time
@@ -9,6 +9,7 @@ import board
 import busio
 import digitalio
 import threading
+import pygame.mixer as sound
 import adafruit_mcp3xxx.mcp3008 as MCP
 import gui
 import withrottle
@@ -38,6 +39,11 @@ throttle_8 = 26
 eBrake = None #get value for emergency brake
 mute = None #get value for sound mute
 
+# Get sound
+sound.init()
+sound.music.load("sm.mp3")
+sound.music.play()
+
 # Declaration of commands and their corresponding function number
 cmdBell = 1
 cmdHorn = 2
@@ -65,6 +71,9 @@ guiInput = gui.userGui()
 #Gui prompt
 while ((serverIP == "") and (locAddr == "")):
     serverIP, locAddr = guiInput.returnValues()
+
+#Music stop
+sound.quit()
 
 #Connection Code
 conPoint = None
@@ -144,9 +153,33 @@ cs = digitalio.DigitalInOut(board.CE0)
 mcp = MCP.MCP3008(spi, cs)
 chan = AnalogIn(mcp, MCP.P0)
 
+#Horn and bell variables
+hornState = False
+bellState = False
+lastHornState = False
+lastBellState = False
+
 while True:
     hornState = GPIO.input(horn)
+    if hornState and not lastHornState:
+        sound.music.load("horn.mp3")
+        sound.music.play()
+        lastHornState = True
+    elif not hornState and lastHornState:
+        sound.quit()
+        lastHornState = False
+        
     bellState = GPIO.input(bell)
+    if bellState and not lastBellState and not hornState:
+        sound.music.load("bell.mp3")
+        sound.music.play()
+    elif not hornState and lastHornState:
+        sound.quit()
+        lastBellState = False
+    elif lastBellState and hornState:
+        sound.quit()
+        lastBellState = False
+    
     currentThrottlePosition = getThrottlePosition()#get position from buttons
     if currentThrottlePosition == None: #Check to see if we are inbetween positions, if so keep last val
         throttleVal = lastThrottlePosition
