@@ -41,13 +41,13 @@ mute = None #get value for sound mute
 
 # Get sound
 sound.init()
-smSound = sound.Sound("sm.wav")
+mfSound = sound.Sound("sm.wav")
 hornSound = sound.Sound("horn.wav")
 bellSound = sound.Sound("bell.wav")
 channel1 = sound.Channel(0)
 channel2 = sound.Channel(1)
 channel3 = sound.Channel(3)
-channel1.play(smSound)
+channel1.play(mfSound)
 
 # Declaration of commands and their corresponding function number
 cmdBell = 1
