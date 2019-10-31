@@ -1,6 +1,6 @@
 #Purpose is to read all sensor data and make into a single format that other scripts can use
 #Created by: Daniel Keats
-#Updated on: 10/24/2019
+#Updated on: 10/31/2019
 
 import RPi.GPIO as GPIO
 import time
@@ -19,14 +19,14 @@ from adafruit_mcp3xxx.analog_in import AnalogIn
 GPIO.setmode(GPIO.BCM) #now we can use easy numbers
 
 #We are going to declare all of our items and their GPIO pins
-directionF = 12
-directionB = 16
+directionF = 0#12
+directionB = 0#16
 encoder1CLK = 18
 encoder1DT = 23
 encoder2CLK = 24
 encoder2DT = 25
-horn = 20
-bell = 21
+horn = 12#20
+bell = 16#21
 throttle_0 = 4
 throttle_1 = 17
 throttle_2 = 27
@@ -41,8 +41,13 @@ mute = None #get value for sound mute
 
 # Get sound
 sound.init()
-sound.music.load("sm.mp3")
-sound.music.play()
+smSound = sound.Sound("sm.wav")
+hornSound = sound.Sound("horn.wav")
+bellSound = sound.Sound("bell.wav")
+channel1 = sound.Channel(0)
+channel2 = sound.Channel(1)
+channel3 = sound.Channel(3)
+channel1.play(smSound)
 
 # Declaration of commands and their corresponding function number
 cmdBell = 1
@@ -73,7 +78,7 @@ while ((serverIP == "") and (locAddr == "")):
     serverIP, locAddr = guiInput.returnValues()
 
 #Music stop
-sound.quit()
+channel1.stop()
 
 #Connection Code
 conPoint = None
@@ -81,7 +86,7 @@ serverPort = 12090
 conPoint = withrottle.WiThrottleConnection()
 conPoint.connect(serverIP, serverPort)
 throttleAddr = 13
-locAddrLong = False #idk it's a fucking boolean check on MRBusThrottle
+locAddrLong = True #idk it's a fucking boolean check on MRBusThrottle
 locObjID = conPoint.locomotiveObjectGet(int(locAddr), throttleAddr, locAddrLong)
 #Just gonna set everything to be inputs
 for pin in sensors:
@@ -100,48 +105,47 @@ def getDirection():
     return 0
 
 def getHeadLights(scale_position):
-    if(scale_positon >= 0 & scale_position < 25):
+    if(scale_position >= 0 & scale_position < 25):
         conPoint.locomotiveFunctionSet(locObjID, 0, 0)
         conPoint.locomotiveFunctionSet(locObjID, 7, 0)
         conPoint.locomotiveFunctionSet(locObjID, 9, 0)
-    elif(scale_positon >= 25 & scale_positon < 50):
+    elif(scale_position >= 25 & scale_position < 50):
         conPoint.locomotiveFunctionSet(locObjID, 0, 1)
         conPoint.locomotiveFunctionSet(locObjID, 7, 1)
         conPoint.locomotiveFunctionSet(locObjID, 9, 0)
-    elif(scale_positon >= 50 & scale_position < 75):
+        print("ree")
+    elif(scale_position >= 50 & scale_position < 75):
         conPoint.locomotiveFunctionSet(locObjID, 0, 1)
         conPoint.locomotiveFunctionSet(locObjID, 7, 0)
         conPoint.locomotiveFunctionSet(locObjID, 9, 0)
-    elif(scale_position >= 75 & scale_positon < 100):
+    elif(scale_position >= 75 & scale_position < 100):
         conPoint.locomotiveFunctionSet(locObjID, 0, 1)
         conPoint.locomotiveFunctionSet(locObjID, 7, 0)
         conPoint.locomotiveFunctionSet(locObjID, 9, 1)
-    return(scale_position)
 
 def getBackLights(scale_position):
-    if(scale_positon >= 0 & scale_position < 25):
+    if(scale_position >= 0 & scale_position < 25):
         conPoint.locomotiveFunctionSet(locObjID, 0, 0)
         conPoint.locomotiveFunctionSet(locObjID, 7, 0)
         conPoint.locomotiveFunctionSet(locObjID, 9, 0)
-    elif(scale_positon >= 25 & scale_positon < 50):
+    elif(scale_position >= 25 & scale_position < 50):
         conPoint.locomotiveFunctionSet(locObjID, 0, 1)
         conPoint.locomotiveFunctionSet(locObjID, 7, 1)
         conPoint.locomotiveFunctionSet(locObjID, 9, 0)
-    elif(scale_positon >= 50 & scale_position < 75):
+    elif(scale_position >= 50 & scale_position < 75):
         conPoint.locomotiveFunctionSet(locObjID, 0, 1)
         conPoint.locomotiveFunctionSet(locObjID, 7, 0)
         conPoint.locomotiveFunctionSet(locObjID, 9, 0)
-    elif(scale_position >= 75 & scale_positon < 100):
+    elif(scale_position >= 75 & scale_position < 100):
         conPoint.locomotiveFunctionSet(locObjID, 0, 1)
         conPoint.locomotiveFunctionSet(locObjID, 7, 0)
         conPoint.locomotiveFunctionSet(locObjID, 9, 1)
-    return(scale_position)
 
 #Encoder Code
 encoder1 = pyky040.Encoder(encoder1CLK, encoder1DT)
-encoder1.setup(scale_min=0, scale_max=100, step=1, chg_callback=getHeadLights)
+encoder1.setup(scale_min=0, scale_max=100, step=20, chg_callback=getHeadLights)
 encoder2 = pyky040.Encoder(encoder2CLK, encoder2DT)
-encoder2.setup(scale_min=0, scale_max=100, step=1, chg_callback=getBackLights)
+encoder2.setup(scale_min=0, scale_max=100, step=1, chg_callback=0)
 thread1 = threading.Thread(target=encoder1.watch)
 thread2 = threading.Thread(target=encoder2.watch)
 thread1.start()
@@ -157,28 +161,29 @@ chan = AnalogIn(mcp, MCP.P0)
 hornState = False
 bellState = False
 lastHornState = False
-lastBellState = False
+bellOn = False
+bellIdle = False
 
 while True:
     hornState = GPIO.input(horn)
     if hornState and not lastHornState:
-        sound.music.load("horn.mp3")
-        sound.music.play()
+        channel2.play(hornSound)
         lastHornState = True
     elif not hornState and lastHornState:
-        sound.quit()
+        channel2.stop()
         lastHornState = False
         
     bellState = GPIO.input(bell)
-    if bellState and not lastBellState and not hornState:
-        sound.music.load("bell.mp3")
-        sound.music.play()
-    elif not hornState and lastHornState:
-        sound.quit()
-        lastBellState = False
-    elif lastBellState and hornState:
-        sound.quit()
-        lastBellState = False
+    if bellState and not bellOn and bellIdle:
+        channel3.play(bellSound)
+        bellOn = True
+        bellIdle = False
+    elif not bellState:
+        bellIdle = True
+    elif bellState and bellOn and bellIdle:
+        channel3.stop()
+        bellOn = False
+        bellIdle = False
     
     currentThrottlePosition = getThrottlePosition()#get position from buttons
     if currentThrottlePosition == None: #Check to see if we are inbetween positions, if so keep last val
