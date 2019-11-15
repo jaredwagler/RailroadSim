@@ -8,6 +8,7 @@ class userGui:
         self.locoAddress = ""
         ROOT_FOLDER = os.path.dirname(os.path.abspath(__file__))
         INFO = os.path.join(ROOT_FOLDER, 'info.txt')
+        IMAGE = os.path.join(ROOT_FOLDER, 'choochoo.gif')
 
         window = Tk()
 
@@ -21,6 +22,7 @@ class userGui:
             f.write(locoAddress)
 
             if ((serverIp != "") and (locoAddress != "")):
+                f.close()
                 window.destroy()
         
         def fileClicked():
@@ -31,11 +33,12 @@ class userGui:
             serverIp = serverIp.rstrip('\n')
             locoAddress = f.readline()
             locoAddress = locoAddress.rstrip('\n')
+            f.close()
             window.destroy()
         
         window.title("Enter IP and Address")
         
-        window.geometry('310x100')
+        window.geometry('310x130')
 
         prompt1 = Label(window, text="Enter Server IP: ")
         prompt1.grid(column=1, row=1)
@@ -55,6 +58,18 @@ class userGui:
 
         btn2 = Button(window, text="Previous Input", command=fileClicked) 
         btn2.grid(column=1, row=3)
+
+        f = open(INFO,'r')
+        tempIP = f.readline()
+        tempIP= tempIP.rstrip('\n')
+        tempAdr = f.readline()
+        tempAdr = tempAdr.rstrip('\n')
+
+        lastIP = Label(window, text="Previous IP Address: " + tempIP)
+        lastIP.grid(column=1, row=4, pady=(10,0))
+
+        lastAdr = Label(window, text="Previous Locomotive Address: " + tempAdr)
+        lastAdr.grid(column=1, row=5)
 
         window.mainloop()
 
