@@ -23,8 +23,6 @@ directionF = 12
 directionB = 16
 encoder1CLK = 18
 encoder1DT = 23
-encoder2CLK = 24
-encoder2DT = 25
 horn = 20
 bell = 21
 throttle_0 = 4
@@ -34,7 +32,7 @@ throttle_3 = 22
 throttle_4 = 5
 throttle_5 = 6
 throttle_6 = 13
-throttle_7 = 0 #Fix Button
+throttle_7 = 0 #UPDATE: PIN NUMBER
 throttle_8 = 26
 eBrake = None #get value for emergency brake
 mute = None #get value for sound mute
@@ -99,43 +97,29 @@ def getThrottlePosition(): #returns the position of the throtle else None
     return None #inbetween throttle positions
 
 def getDirection():
-    for position, pin in enumerate(direction):
-        if GPIO.input(pin):
-            return position
+    direction = round(chan.voltage * 100 / 3.3)
+    if direction < someNumber: #Figure out the numbers 
+        direction = 1
+    elif direction > someDifferentNumber:
+        direction = 0
+    else:
+        conPoint.locomotiveSpeedSet(locObjID,0, 0)
     return 0
 
-def getHeadLights(scale_position):
-    if scale_position >= 0 and scale_position < 25 and currentDirection == 0:
+def getLights(scale_position):
+    if scale_position >= 0 and scale_position < 25:
         conPoint.locomotiveFunctionSet(locObjID, 0, 0)
         conPoint.locomotiveFunctionSet(locObjID, 7, 0)
         conPoint.locomotiveFunctionSet(locObjID, 9, 0)
-    elif scale_position >= 25 and scale_position < 50 and currentDirection == 0:
+    elif scale_position >= 25 and scale_position < 50:
         conPoint.locomotiveFunctionSet(locObjID, 0, 1)
         conPoint.locomotiveFunctionSet(locObjID, 7, 1)
         conPoint.locomotiveFunctionSet(locObjID, 9, 0)
-    elif scale_position >= 50 and scale_position < 75 and currentDirection == 0:
+    elif scale_position >= 50 and scale_position < 75:
         conPoint.locomotiveFunctionSet(locObjID, 0, 1)
         conPoint.locomotiveFunctionSet(locObjID, 7, 0)
         conPoint.locomotiveFunctionSet(locObjID, 9, 0)
-    elif scale_position >= 75 and scale_position < 100 and currentDirection == 0:
-        conPoint.locomotiveFunctionSet(locObjID, 0, 1)
-        conPoint.locomotiveFunctionSet(locObjID, 7, 0)
-        conPoint.locomotiveFunctionSet(locObjID, 9, 1)
-
-def getBackLights(scale_position):
-    if scale_position >= 0 and scale_position < 25 and currentDirection == 1:
-        conPoint.locomotiveFunctionSet(locObjID, 0, 0)
-        conPoint.locomotiveFunctionSet(locObjID, 7, 0)
-        conPoint.locomotiveFunctionSet(locObjID, 9, 0)
-    elif scale_position >= 25 and scale_position < 50 and currentDirection == 1:
-        conPoint.locomotiveFunctionSet(locObjID, 0, 1)
-        conPoint.locomotiveFunctionSet(locObjID, 7, 1)
-        conPoint.locomotiveFunctionSet(locObjID, 9, 0)
-    elif scale_position >= 50 and scale_position < 75 and currentDirection == 1:
-        conPoint.locomotiveFunctionSet(locObjID, 0, 1)
-        conPoint.locomotiveFunctionSet(locObjID, 7, 0)
-        conPoint.locomotiveFunctionSet(locObjID, 9, 0)
-    elif scale_position >= 75 and scale_position < 100 and currentDirection == 1:
+    elif scale_position >= 75 and scale_position < 100:
         conPoint.locomotiveFunctionSet(locObjID, 0, 1)
         conPoint.locomotiveFunctionSet(locObjID, 7, 0)
         conPoint.locomotiveFunctionSet(locObjID, 9, 1)
@@ -143,19 +127,17 @@ def getBackLights(scale_position):
 #Encoder Code
 encoder1 = pyky040.Encoder(encoder1CLK, encoder1DT)
 encoder1.setup(scale_min=0, scale_max=100, step=10, chg_callback=getHeadLights)
-encoder2 = pyky040.Encoder(encoder2CLK, encoder2DT)
-encoder2.setup(scale_min=0, scale_max=100, step=10, chg_callback=getBackLights)
 thread1 = threading.Thread(target=encoder1.watch)
-thread2 = threading.Thread(target=encoder2.watch)
 thread1.start()
-thread2.start()
 
 #Potentiometer Code
 spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
 cs = digitalio.DigitalInOut(board.CE0)
 mcp = MCP.MCP3008(spi, cs)
 chan = AnalogIn(mcp, MCP.P0)
-
+cs2 = digitalio.DigitalInOut(board.CE1) #UPDATE: CHECK PIN
+mcp2 = MCP.MCP3008(spi, cs2) #UPDATE: CHECK PIN
+chan2 = AnalogIn(mcp2, MCP.P1) #UPDATE: CHECK PIN
 #Horn and bell variables
 hornState = False
 bellState = False
@@ -173,7 +155,7 @@ while True:
         channel2.stop()
         conPoint.locomotiveFunctionSet(locObjID, 2, 0)
         lastHornState = False
-        
+
     bellState = not GPIO.input(bell)
     if bellState and not bellOn and bellIdle: #toggles bell sound on
         channel3.play(bellSound)
@@ -187,7 +169,7 @@ while True:
         conPoint.locomotiveFunctionSet(locObjID, 1, 0)
         bellOn = False
         bellIdle = False
-    
+
     currentThrottlePosition = getThrottlePosition()#get position from buttons
     if currentThrottlePosition == None: #Check to see if we are inbetween positions, if so keep last val
         throttleVal = lastThrottlePosition
